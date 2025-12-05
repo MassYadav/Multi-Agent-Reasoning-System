@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-agent-api-deployment
+  labels:
+    app: multi-agent-api
+spec:
+  replicas: 2 # Start with 2 replicas for high availability (can be adjusted by HPA)
+  selector:
+    matchLabels:
+      app: multi-agent-api
+  template:
+    metadata:
+      labels:
+        app: multi-agent-api
+    spec:
+      containers:
+      - name: multi-agent-api-container
+        # IMPORTANT: Replace this with the path to your Docker image in GCP/AWS registry
+        image: gcr.io/your-gcp-project/multi-agent-system:latest 
+        ports:
+        - containerPort: 8000 # Matches the port 8000 exposed in the docker-compose API service
+        env:
+        # Use a real, external MongoDB URI here, not the local dev atlas
+        - name: MONGODB_URI 
+          value: "mongodb://[YOUR_PROD_ATLAS_URI]" 
+        # You would typically use Kubernetes Secrets for sensitive variables
+        # - name: OPENAI_API_KEY
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: api-secrets
+        #       key: openai-key
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "550Mi" # Slightly increased limit for GenAI application
+          requests:
+            cpu: "250m"
+            memory: "300Mi"
